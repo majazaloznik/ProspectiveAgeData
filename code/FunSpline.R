@@ -3,8 +3,8 @@
 #' 
 #' Inputing a set of x and y values (equal lenght) and a single x value 
 #' to interpolate the y value of, this function uses the splinefun function
+#' from the stats package as it's workhorse
 #' 
-#'
 #' @param x -- vector of x values
 #' @param y -- vecotr of y values, has to be same lenght as x
 #' @param threshold -- x threshold for which y needs to be interpolated

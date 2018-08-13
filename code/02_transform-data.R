@@ -14,19 +14,22 @@ source(here::here("code/FunSpline.R"))
 ## 01. data import  =========================================================
 
 # import population data 
-pop <- readRDS(here::here("data/interim/mena.pop.rds"))
+pop <- readRDS(here::here("data/02_interim/pop.rds"))
 
 # import life expectacy data 
-lt <- readRDS(here::here("data/interim/mena.lt.rds"))
+life_tables <- readRDS(here::here("data/02_interim/life_tables.rds"))
 
 
 ## 02. data interpolation =====================================================
+
+
+## 02.1 calculate old-age thresholds  =========================================
 
 # use splines to get old age threshold (15 years remaining life expectancy)
 # for each year/country combination
 # NB: x and y are swapped here on the assumption that there is only 
 # one age where ex is 15. 
-lt %>% 
+life_tables %>% 
   group_by(Location, MidPeriod, Sex) %>% 
   summarise(old.age=FunSpline(ex,AgeGrpStart, 15))  %>% 
   spread(key = Sex, value = old.age)  -> old.age.threshold.5y

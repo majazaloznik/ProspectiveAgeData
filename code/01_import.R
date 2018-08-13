@@ -5,44 +5,28 @@
 ##=============================================================================
 
 ## 00. preliminaries ==========================================================
+
 library(readr)
 library(dplyr)
 
 ## 01. data import  ===========================================================
 
-# manual data frame of countries used in the analysis
-cntryz <- data.frame(country = c("Algeria", "Bahrain", "Egypt", 
-                                 "Iran (Islamic Republic of)", 
-                                 "Iraq", "Israel", "Jordan", "Kuwait", 
-                                 "Lebanon", "Libya", "Morocco", 
-                                 "Oman", "State of Palestine", "Qatar", 
-                                 "Saudi Arabia", "Syrian Arab Republic", 
-                                 "Tunisia", "Turkey", "United Arab Emirates", 
-                                 "Yemen"))
-# import population counts
-pop.df <- read_csv(here::here("data/raw/WPP2017_PBSAS.csv"))
-#, col_types = "iciciniiinnn")
+# import population counts from 2017 world population prospects
+pop.df <- read_csv(here::here("data/01_raw/WPP2017_PBSAS.csv"))
 
 # select only cases and variables needed
 pop.df %>% 
-  filter(Location %in% pull(cntryz)) %>% 
   select(-AgeGrpStart, -AgeGrpSpan) %>% 
-  mutate(AgeGrp = as.numeric(ifelse(AgeGrp == "80+", "80", AgeGrp)))-> mena.pop
+  mutate(AgeGrp = as.numeric(ifelse(AgeGrp == "80+", "80", AgeGrp)))-> pop
 
 # import life table data
-lt.df <- read_csv(here::here("data/raw/WPP2017_LifeTable.csv"))
-
-# select only cases and variables needed
-lt.df %>% 
-  filter(Location %in% pull(cntryz))-> mena.lt
-
+life_tables <- read_csv(here::here("data/01_raw/WPP2017_LT.csv"))
 
 
 ## 02. save output ============================================================
 
 # save population data for mena countires
-saveRDS(mena.pop, here::here("data/interim/mena.pop.rds"))
+saveRDS(pop, here::here("data/02_interim/pop.rds"))
 
 # save life expectancy data for mena countires
-saveRDS(mena.lt, here::here("data/interim/mena.lt.rds"))
-
+saveRDS(life_tables, here::here("data/02_interim/life_tables.rds"))

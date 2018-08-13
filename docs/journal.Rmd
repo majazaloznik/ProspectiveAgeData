@@ -1,0 +1,19 @@
+
+# Monday 13.8.2018
+
+1. OK, basic outline copied from original factsheet, now needs cleaning up.
+
+2. Renamed the data folders and couldn't get `make dot` to work, turns out that's because the `dot2png.R` file had hardcoded paths. This needs to be changed: 
+
+* The makefile must pass the paths to the file. How do I do that again?
+* Actually this question is about how to pass arguments from the command line. Let's try [this](http://tuxette.nathalievilla.org/?p=1696) source. 
+* OK, so using `commandAgrs` in R works, it picks up anything after the `Rscripts` command, and makes it avaylable in R. 
+* Now the only problem I have is that the path I am trying to pass has a `./` at its start in the makefile, but not in R. Used string substitution: `$(string:pattern=replacement)` so `$(DT03:./%=%)` to remove the `./`
+
+3. Now streamline the makefile to get rid of all the factsheet stuff. I'll remove the journal as well. 
+
+4. Also don't forget to include the fact that you know now that multiple targets do not lead to multiple executions of the rules, only multiple printouts using the `-n` option. 
+
+5. 01-import OK, run to interim, so that downloads and saved data to interim are done. This takes a while, since I't downloading all 250MB of data. 
+
+6. In the meantime looking at 02_transform. I am not clear why I use the `FunSpline` function when the spline function seems to do what I want?
