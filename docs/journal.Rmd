@@ -17,3 +17,43 @@
 5. 01-import OK, run to interim, so that downloads and saved data to interim are done. This takes a while, since I't downloading all 250MB of data. 
 
 6. In the meantime looking at 02_transform. I am not clear why I use the `FunSpline` function when the spline function seems to do what I want?
+
+# Tuesday 14.8.18
+
+Notes on publication:
+
+*[Research Data Journal for the Humanities and Social Sciences](http://booksandjournals.brillonline.com/content/journals/24523666) might be intersting, although it seems pretty new and not really doing such niche things. 
+
+*[Scientific Data](https://www.nature.com/sdata/publish#templates) with Nature looks great, but you need to pay, plus it is aimed at bioinformatics and the like. But good template "Data Descriptor" - see also in `\literature` folder for template. 
+
+*[Open Health Data](https://openhealthdata.metajnl.com/) might actually be best bet. With an excellent example of some guy who cleaned up the WHO mortality database (a bit) and made it available [here](https://openhealthdata.metajnl.com/articles/10.5334/ohd.ao/)
+
+*[Data](http://www.mdpi.com/journal/data/special_issues/spatial_denominator) is also a data journal, but not social sciences based, although there was an interesting call for papers on grid population datasets, so keep that in mind!
+
+OK, so where was I?
+
+1. `.gitignore`
+
+2. What was the difference between FunSPline and spline? OK, so it seems that `spline()` cannot take the "mono" method. And I want to use that one, since it means the function is monotonically increasing, and also since the data fit the IIASA factsheet. That is for calculating the threshold. 
+
+3. So I will best use the "mono" function for the rest of the interpolation as well! OK
+
+4. See if I can't get 1950-2100 data instead of 1953-2098. OK
+
+5. SO having added the extra years at the start and end, the mono funciton makes a big difference there especially. So yeah, FunSPline all the way. 
+
+6. Next step: getting the populations sizes at the threshold age: I only did that for both genders together, but it would make sense to do it for them separately as well? 
+
+7. First I'll just go back and clear up the `pop` dataset - it has too many variables i don't need. 
+
+8. Now split the population size exptrapolation into three threads, one for each group. (Could probably be done in a more modular way, but this is too non-standard evaluation teritory for my lady brain). 
+
+9. OK, popoulations at threshold age are now caclulated, now just find the ones over or under. 
+
+10. Double check with the MENA data for both genders together - looks good (at least in Algeria). 
+
+11. Careful, the demo data files might need following up since i've changed the variable names. 
+
+12. In joining three tables the use of suffix is not great - it only works if the variable names are the same, but if you've already joined two tables, then they aren't any more, and it doesn't force the suffix.
+
+13. LEQ 65 or < 65?!?!?!
