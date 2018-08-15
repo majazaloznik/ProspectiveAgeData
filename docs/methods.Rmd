@@ -2,7 +2,8 @@
 title: data analysis methods for MENA factscheet PH 14.2 - May 2018
 author: mz
 output: pdf_document
-bibliography: "../bib.bib"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+bibliography: "bib.bib"
 ---
 
 # Data 
@@ -67,7 +68,7 @@ Now use splines to get the coefficients for life expectancy as a funciton of age
 ```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Figure 1:: Interpolation of old-age threhsold: x where ex is 15."}
 library(dplyr)
 source(here::here("code/FunSpline.R"))
-demo <- readRDS(here::here("data/processed/demo.rds"))
+demo <- readRDS(here::here("data/03_processed/demo.rds"))
 demo.algeria <- filter(demo, MidPeriod == 1988)
 x <- demo.algeria$AgeGrpStart
 y <- demo.algeria$ex
@@ -105,14 +106,13 @@ demo  %>%
 
 # use splines to get the age thresholds for each year
 # first expand to get all years needed
-interpolating.years <- expand.grid(MidPeriod = seq(from=min(demo $MidPeriod),
-                                                   to = max(demo $MidPeriod), by = 1),
-                                   Location = unique(demo $Location))
+interpolating.years <- expand.grid(MidPeriod = 1950:2100,
+                                   Location = unique(demo$location))
 
 # interpolate the threshold for each single year, for all three Sex groups
 thresholds.5y %>% 
   right_join(interpolating.years) %>% 
-  mutate(old.age = spline(MidPeriod, old.age, xout = MidPeriod)$y) -> thresholds.1y
+  mutate(old.age = FunSpline(MidPeriod, old.age, MidPeriod)) -> thresholds.1y
 
 plot(thresholds.1y$MidPeriod, thresholds.1y$old.age, pch = 19, col = "red",
      cex = 0.5, xlab = "Year", ylab = "Old-age threshold", main = "Algeria")
@@ -145,10 +145,10 @@ $Prop > RLE^{15} = \frac{Pop_{y=i}^{x<RLE^{15}_{y=i}}}{\sum_{x = 1}^{x = 80+}{Po
 ```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Figure 3: Interpolation of populaiton over old-age threhsold"}
 library(dplyr)
 source(here::here("code/FunSpline.R"))
-demo.pop <- readRDS(here::here("data/processed/demo.pop.rds"))
+demo.pop <- readRDS(here::here("data/03_processed/demo.pop.rds"))
 
-x <- demo.pop$AgeGrp
-y <- cumsum(demo.pop$PopTotal)
+x <- demo.pop$age
+y <- cumsum(demo.pop$total)
 
 plot(x, y, pch = 19, ylab = "Cumulative Population", xlab = "x (age)",
      main = "Algeria in 1988", xlim = c(60, 65), ylim = c(23400, 23900))

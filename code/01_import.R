@@ -17,12 +17,19 @@ pop <- read_csv(here::here("data/01_raw/WPP2017_PBSAS.csv"))
 # select only cases and variables needed
 pop %>% 
   select(Location, Time, AgeGrp, starts_with("Pop")) %>% 
-  rename(Total = PopTotal, Male = PopMale, Female = PopFemale, Age = AgeGrp) %>% 
-  mutate(Age = as.numeric(ifelse(Age == "80+", "80", Age))) -> pop
+  rename(total = PopTotal, 
+         male = PopMale, 
+         female = PopFemale, 
+         age = AgeGrp,
+         location = Location,
+         time = Time) %>% 
+  mutate(age = as.numeric(ifelse(age == "80+", "80", age))) -> pop
 
 # import life table data
 life_tables <- read_csv(here::here("data/01_raw/WPP2017_LT.csv"))
-
+life_tables %>% 
+  rename(location = Location,
+         time = Time) -> life_tables
 
 ## 02. save output ============================================================
 

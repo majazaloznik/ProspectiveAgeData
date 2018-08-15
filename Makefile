@@ -51,6 +51,7 @@ endef
 
 # recipe for sourcing the prerequisite R file
 define sourceR
+	@echo sourcing the prerequisite R file ---------------------------------------
 	Rscript -e "source('$<')"
 endef
 
@@ -59,10 +60,9 @@ endef
 
 .PHONY: all
 
-all: readme methods dot results
+all: readme methods dot results codebook
 
 results: $(RESULTS)
-interim: $(DT02)/pop.rds $(DT02)/life_tables.rds
 
 # make chart from .dot #########################################################
 dot: $(FIG)/make.png 
@@ -79,22 +79,27 @@ $(DT03)/make.dot: $(DIR)/Makefile
 # README from Rmds #############################################################
 readme: README.html
 
-README.html: README.md $(FIG)/extract.png
+README.html: README.md 
 	$(rmd2html)
 
 # methods from Rmds ############################################################
-methods: $(RPRT)/methods.pdf
+methods: $(DOCS)/methods.pdf
 
-$(RPRT)/methods.pdf:  $(RPRT)/methods.Rmd  $(DEMOS) $(DOC)/bib.bib
+$(DOCS)/methods.pdf:  $(DOCS)/methods.Rmd  $(DEMOS) $(DOCS)/bib.bib
 	$(rmd2pdf)
 
+# codebook from Rmds ############################################################
+codebook: $(DOCS)/codebook.pdf
+
+$(DOCS)/codebook.pdf:  $(DOCS)/codebook.Rmd $(DOCS)/bib.bib
+	$(rmd2pdf)
 
 # calculate splines and process data   ########################################	
-$(RESULTS) $(DEMOS):  $(CODE)/02-transform-data.R
+$(RESULTS) $(DEMOS):  $(CODE)/02_transform-data.R
 	Rscript -e "source('$<')"
 
 # required data for input to 02-clean-data
-$(CODE)/02-transform-data.R: $(DT02)/pop.rds $(DT02)/life_tables.rds $(CODE)/FunSpline.R
+$(CODE)/02_transform-data.R: $(DT02)/pop.rds $(DT02)/life_tables.rds $(CODE)/FunSpline.R
 	touch $@
 
 # import and clean data #######################################################

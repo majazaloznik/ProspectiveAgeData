@@ -56,4 +56,43 @@ OK, so where was I?
 
 12. In joining three tables the use of suffix is not great - it only works if the variable names are the same, but if you've already joined two tables, then they aren't any more, and it doesn't force the suffix.
 
-13. LEQ 65 or < 65?!?!?!
+13. LEQ 65 or < 65?!?!?! 
+
+# Wednesday 15.8.2018
+
+1. OK, so clearly we are intersted in people aged 65 and over, so my previous versions were wrong, since the under were LEQ 65 instead. OK, and this has now been double checked with [World Bank data](https://data.worldbank.org/indicator/SP.POP.65UP.TO.ZS?end=2017&start=1960&view=chart) which is based on the 2017 WPP, so the calculations done now are correct. 
+
+2. So how does the makefile look now?? the `interim` was just temporary, wasn't it?
+
+3. OK, fix up `methods.Rmd` in line with the cahnegs to 02_transofrm from yesterday, esp. spline function and variable names. 
+
+4. Oh man, cleaning makefiles - it's really tricky since there are no errors if e.g. a filename i named doesn't actually exist.. So i renamed a few files and didn't update the makefile, and that takes ages to figure out.. 
+
+5. OK, methods are OK. 
+
+6. Now this is the repo for the prospective age data, so no need to save the population data. But because I need those int eh factsheet I need to move that part of the code there. 
+
+7. And in the factsheet have to now import the `prospective_age` data instead of transforming it there.  Also, there won't be any methods file there any more!! Or rather it is only compiled here, in the data repo, but I could link to it there as well. 
+
+8. OK, tried to clear out the data transform code in the spreadsheets and turns out i got the zigzaggy proportions over the threshold again... Apparently that's because of the <= threshold! Fixed.
+
+9. Rerun whole factsheet, fingers crossed. All good. Commit. 
+
+10. Still has a manual copy of the data, I'll download it from figshare as soon as I deposit this there for the first time. 
+
+11. What next. I need a codebook?
+
+12. But first, set up the github/figshare setup! So here are some things:
+
+* i can add a github repo as an "item" on figshare and set it to automatically update at each new release.
+* aha, so on github I can have releases!
+* but then it's the whole repo that has a DOI
+* what if i want a fileset with the data, the codebook and the methods instead. 
+
+13. OK, actually, I really hate the use of capitalisation in the variable names, so that needs to be cleaned up! Done that, but that will have reprecussions in the factsheet code as well.. I think that's all sorted now. Factsheet works great. Commit now. 
+
+14. OK, so codebook. 
+
+15. ToDO: region identifiers
+
+16. ToDo: other measures?
