@@ -13,7 +13,7 @@ DT03:= $(DATA)/03_processed
 DT04:= $(DATA)/04_human-readable
 
 # FILES #######################################################################
-RESULTS = $(DT04)/human-readable.csv
+RESULTS = $(DT04)/2017_prospective-ages.csv
 DEMOS = $(DT03)/demo.rds $(DT03)/demo.pop.rds
 INTERIM = $(DT02)/pop.rds $(DT02)/life_tables.rds
 # COMMANDS ####################################################################
@@ -60,9 +60,14 @@ endef
 
 .PHONY: all
 
-all: readme methods dot results codebook
+all: readme publish dot
 
-results: $(RESULTS)
+# publish to figshare  #########################################################
+publish:  $(CODE)/03_publish.R
+	Rscript -e "source('$<')"
+
+$(CODE)/03_publish.R:  $(RESULTS) $(DOCS)/methods.pdf $(DOCS)/codebook.pdf
+	touch $@
 
 # make chart from .dot #########################################################
 dot: $(FIG)/make.png 
@@ -83,14 +88,10 @@ README.html: README.md
 	$(rmd2html)
 
 # methods from Rmds ############################################################
-methods: $(DOCS)/methods.pdf
-
 $(DOCS)/methods.pdf:  $(DOCS)/methods.Rmd  $(DEMOS) $(DOCS)/bib.bib
 	$(rmd2pdf)
 
 # codebook from Rmds ############################################################
-codebook: $(DOCS)/codebook.pdf
-
 $(DOCS)/codebook.pdf:  $(DOCS)/codebook.Rmd $(DOCS)/bib.bib
 	$(rmd2pdf)
 

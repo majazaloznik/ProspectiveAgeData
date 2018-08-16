@@ -1,13 +1,25 @@
 ---
-title: data analysis methods for MENA factscheet PH 14.2 - May 2018
+title: Methodology for Calculating the Prospective Age Dataset
 author: mz
 output: pdf_document
+toc: true
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 bibliography: "bib.bib"
 ---
 
+***
+
+# Intro
+
+This document describes the methodology used to calculate the variables in the Prospective Age Dataset. It describes the original data used, and the calculations preformed for both variables. See also the codebook for a description of the dataset itself. This methods file, the codebook and the dataset are deposited on [figshare](https://figshare.com/articles/Prospective_Age_Dataset/6974414) and updated automatically. 
+
+***
 # Data 
 
+Both datasets are part of the UN 2017 Revision of the World Population Prospects @un2017 and were downloaded from the UN Population Division website on `r format(file.info(here::here("data/01_raw/WPP2017_PBSAS.csv"))$ctime,format='%d.%m.%Y')`.
+
+The original variables are described here for both datasets:
+ 
 ### UN World Population Prospects - [Standard Projections](https://esa.un.org/unpd/wpp/Download/Standard/CSV/)
 
 * **LocID** (numeric): numeric code for the location; for countries and areas, it follows the ISO 3166-1 numeric standard
@@ -36,44 +48,30 @@ Abridged life tables up to age 85 by sex and both sexes combined providing a set
 * **ex**: Expectation of life (ex) at age x, i.e., average number of years lived subsequent to age x by those reaching age x
 * **ax**: Average number of years lived (nax) between ages x and x+n by those dying in the interval
 
-# Calculations
+***
 
-## Old-age threshold 
-
-Calculating the *old-age threshold*, which is the age at which the remaining life expectancy is 15 years, was based on the abridged life tables which has **ex** values for five year groups, so I used splines to interpolate the age where **ex** equals 15. 
-
-Although even a linear interpolation would not change the calculations dramatically, so this is a minor point, but still..
-
-I use the `R` `stats` function `splinefun()` and the monotone Hermite spline cumputation according to the method of Fritsch and Carlson: `method = "monoH.FC"` which produces identical results (to the second decimal point)  as the ones published in the IIASA Ageing Demographic Data Sheet [@scherbov2018aging], for a random selection of a dozen country/year combinations. 
+# Methodology
 
 See @Sanderson2008 for more info on prospective measures of ageing. 
 
-Furthermore, the life tables are for five-year time periods as well. So after step one--finding the age at which ex in 15, for every 5-year period--comes step two, interpolating these for every individual year. 
+## Calculating the old-age thresholds
 
-So we start with life expectancy values:
-
-$e^{y = i_5}_{x}$ 
-
-where the $e$ is given for five year age groups (except for first two, and last): 
-
-$x = 0,1,5,10,...75, 80$ 
-
-and for time periods of five years 
-
-$i_5 = 1950-55, 1955-60... 2095-2100$
-
-Now use splines to get the coefficients for life expectancy as a funciton of age, with which we can interpolate the age $x$ at which $e_x = 15$ for each time period $y = i_5$. 
+The *old-age threshold*, is the age at which the remaining life expectancy is 15 years. Calculating it was based on the abridged life tables which has life expectancy ($e_x$) values for five year age groups. I used splines to interpolate the age $x$ where $e_x$ equals 15. 
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Figure 1:: Interpolation of old-age threhsold: x where ex is 15."}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Interpolation of old-age threhsold ($RLE^15$): x where ex is 15.", fig.width = 6, fig.asp = .5}
 library(dplyr)
 source(here::here("code/FunSpline.R"))
 demo <- readRDS(here::here("data/03_processed/demo.rds"))
 demo.algeria <- filter(demo, MidPeriod == 1988)
 x <- demo.algeria$AgeGrpStart
 y <- demo.algeria$ex
-plot(x, y, pch = 19, ylab = "ex", xlab = "$x$ (age)",
-     main = "Algeria in 1988")
+par(mar = c(3, 3, 2, 0)+0.1)
+plot(x, y, pch = 19, ylab = "ex", xlab = "x (age)",
+     main = "", axes = FALSE)
+axis(1)
+axis(2, las = 2)
+mtext("Algeria in 1988", line = 1)
 func = splinefun(x, y, method="monoH.FC",  ties = mean)
 
 x <- seq(0, 90, 0.5)
@@ -85,21 +83,37 @@ func2 = splinefun(y, x, method="monoH.FC",  ties = mean)
 points(func2(15), 15, col = "red", pch = 19)
 abline(v= func2(15),col = "red", lty = 3, lwd = 1.5)
 
+arrows(func2(15),  13, func2(15),2, col = "red", lwd = 2,
+       length = 0.1) 
+arrows(20,  15, 40,15, col = "red", lwd = 2,
+       length = 0.1) 
+text(func2(15)+3, -1.4, "RLE^15", col = "red", xpd = TRUE, cex = .8)
 ```
 
-Now technically, this chart in Figure 1 is a misleading because I am not actually using the spline $g(e_x)$. I am doing the inverse and getting the spline function for $g(x)$, so that I can then enter $e_x = 15$ and get out the value of $x$ i.e. the age. In doing this I am assuming that the funciton is monotonic--or rather that it is monotonic in the area that I'm interested in. Which is fine, because teh only point at which it isn't monotonic is at the highest $e_x$ values (i.e. at birth). But the value $e_x=15$ occurs only once, so this is OK.
 
-So let's call the old-age threshold at time $y = i$, following @Sanderson2008, $RLE^{15}_{y=i}$, and in this case we only have it for five year time periods so $RLE^{15}_{y=i_5}$. RLE stands for remainling life expectancy.
+I use the `R` `stats` function `splinefun()` and the monotone Hermite spline computation according to the method of Fritsch and Carlson: `method = "monoH.FC"` which produces identical results (to the second decimal point)  as the ones published in the IIASA Ageing Demographic Data Sheet [@scherbov2018aging], for a random selection of a dozen country/year combinations. Although they do not provide details on their methodology, it makes most sense to use this method as it guarantees the interpolated values remain monotonically increasing/decreasing iff the input data is as well, which is what we would expect from life expectancy data short of any major disturbance. 
+
+Additionally to being abridged the life tables are for five-year time periods as well. So there are two steps in the interpolation:
+
+1. finding the age $x$ where $e_x$ is 15 for every 5-year period
+2. interpolating these for every individual year. 
+
+So we start with life expectancy values:
+
+$e^{y = i_5}_{x}$ 
+
+where the $e$ is given for five year age groups (except for first two, and last): 
+
+$x = 0,1,5,10,...80, 85$ 
+
+and for time periods of five years 
+
+$i_5 = 1950-55, 1955-60... 2095-2100$
+
+Now use splines to get the coefficients for life expectancy as a function of age, with which we can interpolate the age $x$ at which $e_x = 15$ for each time period $y = i_5$. See also Figure 1 where black points represent known data and red the interpolated. 
 
 
-Then, for a smoother graph, and because we will need them in the next step, we then use splines to interpolate to single years instead of the five year periods. Here the MidPeriod variable is assumed as the correct for each old-age threshold, and the intervening periods are then interpolated. Because of this I don't have data for the first and last couple of years: the first time period is 1950-55 with 1953 as the MidPeriod. This is treated  as the input data for the interpolation of the individual year thresholds. 
-
-So we have $RLE^{15}_{y=i_5}$ as a function of $y$ and interpolate using $g(RLE) $ to get individual years:
-
-$RLE^{15}_{y=i}$, where $i=1953, 1954... 2098$
-
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Interpolation of single year old-age thresholds"}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Interpolation of single year old-age thresholds",fig.width = 6, fig.asp = .5}
 demo  %>% 
   group_by( MidPeriod) %>% 
   summarise(old.age=FunSpline(ex,AgeGrpStart, 15)) -> thresholds.5y
@@ -113,17 +127,34 @@ interpolating.years <- expand.grid(MidPeriod = 1950:2100,
 thresholds.5y %>% 
   right_join(interpolating.years) %>% 
   mutate(old.age = FunSpline(MidPeriod, old.age, MidPeriod)) -> thresholds.1y
-
+par(mar = c(3, 3, 2, 0)+0.1)
 plot(thresholds.1y$MidPeriod, thresholds.1y$old.age, pch = 19, col = "red",
-     cex = 0.5, xlab = "Year", ylab = "Old-age threshold", main = "Algeria")
-
+     cex = 0.5, xlab = "Year", ylab = "Old-age threshold", 
+     main = "", axes = FALSE)
+axis(1)
+axis(2, las = 2)
+mtext("Algeria", line = 1)
 points(thresholds.5y$MidPeriod, thresholds.5y$old.age, pch = 19)
 
 ```
 
 
+Now technically, this chart in Figure 1 is a misleading because I am not actually using the spline $g(e_x)$. I am doing the inverse and getting the spline function for $g(x)$, so that I can then enter $e_x = 15$ and get out the value of $x$ i.e. the age. In doing this I am assuming that the function is monotonic--or rather that it is monotonic in the area that I'm interested in. Which is fine, because the only point at which it isn't monotonic is at the highest $e_x$ values (i.e. at birth). But the value $e_x=15$ occurs only once, so this is OK.
 
-## Proportion over old-age threshold
+So let's call the old-age threshold at time $y = i$, following @Sanderson2008, $RLE^{15}_{y=i}$, and in this case we only have it for five year time periods so $RLE^{15}_{y=i_5}$. RLE stands for remaining life expectancy.
+
+
+Then, for a smoother graph, and because we will need them in the next step, we then use splines to interpolate to single years instead of the five year periods. Here we use MidPeriod variable as the correct for each old-age threshold. So the $RLE^{15}$ for 1950-1955 is actually the value in 1953, and the remaining years are then interpolated. Because of this I the first three and last two years might be treated with caution, since they are beyond the end points. The MidPeriod thresholds are therefore the input data for the interpolation of the individual year thresholds. 
+
+So we have $RLE^{15}_{y=i_5}$ as a function of $y$ and interpolate using $g(RLE)$ to get individual years:
+
+$RLE^{15}_{y=i}$, where $i=1953, 1954... 2098$
+
+See also Figure 2 where again black points represent known data and red the interpolated. 
+
+
+
+## Calculating the proportion over old-age threshold
 
 So now we have the old-age threshold for every year. 
 
@@ -131,28 +162,34 @@ $RLE^{15}_{y=i}$
 
 We also have the population data, single-year age groups, for every year. 
 
-$Pop_{y=i}^{x=k}$ where $k = 0,1,2...80$ and $y = 1950, 1951.. 2100$
+$Pop_{y=i}^{x=k}$ where $k = 0,1,2...80+/100+$ and $y = 1950, 1951.. 2100$
 
+(Some countries have data capped at 80, others at 100, but in neither case are the thresholds anywhere near that end, so this is not relevant to our calculations).[^1]
+
+[^1]: The UN Standard Projections dataset is inconsistent here in that the variable **AgeGrp** has the value "80+" in the case of the first set of countries but simply "100" in the second instead of "100+". 
 
 So in order to get the proportion of the population over the old age-threshold, we now need to interpolate the population. E.g. there are 30,000 people aged 62 but not yet 63. How many people are aged 62.3? Again, this interpolation could be done linearly, but since we have information on the population at ages 61 and 63 etc, it makes sense to use that in the calculation and use splines again. 
 
-But of course (it turns out after a lot of odd results) I need to interpolate between the cumulative populations! So here is how this works via Figure 3. Here we start at the old-age threshold reading it off the x-axis--it's 62.89 for Algeria in 1988, and interpolate the cumulative population that is under that age from the y-axis. This cumulative population $Pop_{y=i}^{x<RLE^{15}_{y=i}}$ is then divided by the total population in year $y=i$ to get the proportion over the old-age threshold.
+But of course (it turns out after a lot of odd results) I need to interpolate between the cumulative populations! So here is how this works via Figure 3. Here we start at the old-age threshold reading it off the x-axis--it's 62.89 for Algeria in 1988, and interpolate the cumulative population that is under that age from the y-axis. This cumulative population $Pop_{y=i}^{x<RLE^{15}_{y=i}}$ is then divided by the total population in year $y=i$ to get the proportion *under* the old-age threshold, which is subtracted from one to get the proportion *over* the threshold:
 
-$Prop > RLE^{15} = \frac{Pop_{y=i}^{x<RLE^{15}_{y=i}}}{\sum_{x = 1}^{x = 80+}{Pop^{x}_{y=i}}}$
+$Prop > RLE^{15} = 1 - Prop < RLE^{15} = 1 - \frac{Pop_{y=i}^{x<RLE^{15}_{y=i}}}{\sum_{x = 1}^{x = 80+/100+}{Pop^{x}_{y=i}}}$
 
 
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Figure 3: Interpolation of populaiton over old-age threhsold"}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Figure 3: Interpolation of populaiton over old-age threhsold",fig.width = 6, fig.asp = .5}
 library(dplyr)
 source(here::here("code/FunSpline.R"))
 demo.pop <- readRDS(here::here("data/03_processed/demo.pop.rds"))
 
 x <- demo.pop$age
 y <- cumsum(demo.pop$total)
+par(mar = c(3, 4, 2, 0)+0.1)
 
 plot(x, y, pch = 19, ylab = "Cumulative Population", xlab = "x (age)",
-     main = "Algeria in 1988", xlim = c(60, 65), ylim = c(23400, 23900))
+     main = "", xlim = c(60, 65), ylim = c(23400, 23900), axes = FALSE)
 func = splinefun(x, y, method="monoH.FC",  ties = mean)
+mtext("Algeria in 1988", line = 1)
+axis(1)
+axis(2, las = 2)
 
 x <- seq(55, 70, 0.5)
 y <- func(x)

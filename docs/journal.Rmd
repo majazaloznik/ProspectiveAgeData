@@ -96,3 +96,20 @@ OK, so where was I?
 15. ToDO: region identifiers
 
 16. ToDo: other measures?
+
+
+# Thursday 16.8.18
+
+1. POlish up the methods a bit, make it presentable. 
+
+2. Tidy up dataset! Yeah, i think it will be nicer to have location/time/gender rows instead of the wide format i have now. It will require a spread in the factsheet analysis. OK, both sorted. 
+
+3. Now make sure the dataset is somewhere online and download it directly in the factsheet. I want to be able to cite the dataset with metadata on the factsheet. Hmm, maybe `rfigshare` is what i need now. Trying [this tutorial](https://github.com/ropensci/rfigshare/blob/master/inst/examples/tutorial.Rmd) here. 
+
+4. Tutorial is pretty deprecated... I get it to work, but authentication happens via a browser, so I can't automate it - at least not obviously how. 
+
+5. Man, the `rfigshare` path was not simple at all. But I got it in the end. Could totally do with a tutorial though!
+
+6. So how might someone else point to the most recent version of the datafile? Programatically? Because the file id changes, but the name of the file stays the same. 
+
+https://ndownloader.figshare.com/files/12795017

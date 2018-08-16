@@ -65,6 +65,7 @@ pop %>%
   arrange(location, time, age) %>% 
   mutate(CumPop = FunSpline(age, CumPop, age)) ->  total.pop.thresholds
 
+
 # repeat for men only
 pop %>% 
   group_by(location, time) %>% 
@@ -106,7 +107,8 @@ total.pop.thresholds %>%
             total = last(Pop.threshold),
             under.65 = first(Pop.65)) %>% 
   mutate(prop.over.65 = (total-under.65)/total,
-         prop.over.t = (total - under.t)/total) -> total.prop.over
+         prop.over.t = (total - under.t)/total,
+         group = "total") -> total.prop.over
 
 # for men only
 male.pop.thresholds %>% 
@@ -121,7 +123,8 @@ male.pop.thresholds %>%
             total = last(Pop.threshold),
             under.65 = first(Pop.65)) %>% 
   mutate(prop.over.65 = (total-under.65)/total,
-         prop.over.t = (total - under.t)/total) -> male.prop.over
+         prop.over.t = (total - under.t)/total, 
+         group = "male") -> male.prop.over
 
 # for women only
 female.pop.thresholds %>% 
@@ -136,20 +139,19 @@ female.pop.thresholds %>%
             total = last(Pop.threshold),
             under.65 = first(Pop.65)) %>% 
   mutate(prop.over.65 = (total-under.65)/total,
-         prop.over.t = (total - under.t)/total) -> female.prop.over
+         prop.over.t = (total - under.t)/total,
+         group = "female") -> female.prop.over
 
 ## 02.5. merge all three tables back together==================================
 total.prop.over %>% 
+  bind_rows(male.prop.over) %>% 
+  bind_rows(female.prop.over) %>% 
   select(-under.t, -total, -under.65) %>% 
-  left_join(male.prop.over %>% 
-              select(-under.t, -total, -under.65),
-            by = c("location", "time"), 
-            suffix = c(".total",".male")) %>% 
-  left_join(female.prop.over %>% 
-              select(-under.t, -total, -under.65)) %>% 
-  rename(prop.over.t.female = prop.over.t,
-         prop.over.65.female = prop.over.t) -> prop.over
+  arrange(location, time, group)  -> prop.over
 
+old.age.threshold.1y %>% 
+  gather("group", "threshold", 3:5) %>% 
+  arrange(location, time, group) -> thresholds
 
 ## 03. save demo data extract for methods.Rmd  ================================
 
@@ -163,6 +165,6 @@ pop %>%
 saveRDS(demo.pop, here::here("data/03_processed/demo.pop.rds"))
 
 ## 04. save csv data for easy access ===========================================
-prospective_ages <- left_join(old.age.threshold.1y, prop.over) 
+prospective_ages <- left_join(thresholds, prop.over) 
 write_csv(prospective_ages, "data/04_human-readable/2017_prospective-ages.csv")
 
