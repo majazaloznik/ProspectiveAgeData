@@ -112,4 +112,11 @@ OK, so where was I?
 
 6. So how might someone else point to the most recent version of the datafile? Programatically? Because the file id changes, but the name of the file stays the same. 
 
-https://ndownloader.figshare.com/files/12795017
+7. Sorted
+
+# Friday 17.8.2018
+
+So plotting the male and female proportions along with the normal proportions over 65 and over the threhsolds revealed some issues, first of all with Tunisia. 
+
+In trying to sort it out, I figured out sth else: My proportion over the threshold was calculated using the total population cumsum and total population old-age threshold. But men and women have separate thresholds, so one could argue that they should be calculated separately and then added together to get the proportion over the(ir) old age threshold. Still haven't solved the second part though
+
