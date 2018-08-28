@@ -118,5 +118,37 @@ OK, so where was I?
 
 So plotting the male and female proportions along with the normal proportions over 65 and over the threhsolds revealed some issues, first of all with Tunisia. 
 
-In trying to sort it out, I figured out sth else: My proportion over the threshold was calculated using the total population cumsum and total population old-age threshold. But men and women have separate thresholds, so one could argue that they should be calculated separately and then added together to get the proportion over the(ir) old age threshold. Still haven't solved the second part though
+In trying to sort it out, I figured out sth else: My proportion over the threshold was calculated using the total population cumsum and total population old-age threshold. But men and women have separate thresholds, so one could argue that they should be calculated separately and then added together to get the proportion over the(ir) old age threshold. Still haven't solved the second part though. 
+
+# Monday 20.8.2018
+
+1. But also actually this is not necessary that the total is a sum of individual props over threshold, it could just be the sum of people over the total trheshold, i just need to clearly state that. 
+
+2. And now back to fiugring out what the problem is with Tunisia.. 
+
+3. I think I figured it out. The problem is when the threshold is just under 65, then the threshold and value gets picked as the last value under 65 instead of 64! SO Instead I'll just switch to <= 64 instead of <65. 
+
+4. UGH, but no, it means <= 65 was correct to begin with, because these are cumulative sums of populaiton, so <=65 in this table is the cumulative sume up until 65. So I had it right before. But that means the world bank data is wrong?!
+
+5. Let's switch that back now. And then when i'm online check if I can't find any UN data to compare to, and double check the oer 65 proportions I have are right. 
+
+# Tuesday 21.8.18
+
+1. OK, draw it, step by step. CumSum at line age == 64 is the total population of people aged 64 up until almost 65. So <= 64 is correct to get the proportion over and under 65. 
+
+2. The problem is in the interpolated CumSum at the threshold. Because that's a point estimate, not a agegroup (albeit single year) estimate. 
+
+3. So AgeGrp was the orignal variable name, renamed to `age` here, but it's really age group start, which means `agegroupend` is age+1, and I need the end of the age group for the cumulative proportions to be the point estimate. So i'll add `age_group_end` to be nice and clear here. 
+
+4. And just a note for fun, half way through this project i started converting to underscore variable naming instead of periods, ha. So everything is naturally a bit inconsistent, soz. 
+
+# Thursday 23.8.2018
+
+1. OK, finish rewriting the splines for cumulative populaiton correctly. I think that's all good now.
+
+2. Now let's see how the plotting funcitons work with these new datasets. 
+
+3. But first actually have to run the makefile here! OK; all almost worked up until publish, since i didnt have rfigshare installed here.
+
+4. Excellent, this works! Back to the factsheet now. 
 

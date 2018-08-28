@@ -45,7 +45,7 @@ old.age.threshold.5y %>%
   mutate(female= FunSpline(MidPeriod, female, MidPeriod),
          male = FunSpline(MidPeriod, male, MidPeriod),
          total = FunSpline(MidPeriod, total, MidPeriod)) %>% 
-  rename(time = MidPeriod) ->   old.age.threshold.1y
+  rename(time = MidPeriod) ->   thresholds_1y
 
 rm(interpolating.years, old.age.threshold.5y)
 
@@ -53,105 +53,69 @@ rm(interpolating.years, old.age.threshold.5y)
 #  merge thresholds back with the full population table, 
 # sliding them in as extra rows 
 pop %>% 
+  mutate(age_group_end = age + 1) %>% 
   group_by(location, time) %>% 
-  mutate(CumPop = cumsum(total)) %>% 
+  mutate(cum_pop_total = cumsum(total),
+         cum_pop_female = cumsum(female),
+         cum_pop_male = cumsum(male))  %>% 
   select(-total, -male, -female) %>% 
-  bind_rows(old.age.threshold.1y %>% 
-              select(-male, -female) %>% 
-              rename(age = total) %>% 
-              mutate(threshold = age)) %>% 
-  arrange(location, time, threshold) %>% 
-  fill(threshold) %>% 
-  arrange(location, time, age) %>% 
-  mutate(CumPop = FunSpline(age, CumPop, age)) ->  total.pop.thresholds
-
-
-# repeat for men only
-pop %>% 
-  group_by(location, time) %>% 
-  mutate(CumPop = cumsum(male)) %>% 
-  select(-total, -male, -female) %>% 
-  bind_rows(old.age.threshold.1y %>% 
-              select(-total, -female) %>% 
-              rename(age = male) %>% 
-              mutate(threshold = age)) %>% 
-  arrange(location, time, threshold) %>% 
-  fill(threshold) %>% 
-  arrange(location, time, age) %>% 
-  mutate(CumPop = FunSpline(age, CumPop, age)) ->  male.pop.thresholds
-
-# and for women only
-pop %>% 
-  group_by(location, time) %>% 
-  mutate(CumPop = cumsum(female)) %>% 
-  select(-total, -male, -female) %>% 
-  bind_rows(old.age.threshold.1y %>% 
+  bind_rows(thresholds_1y %>%  
+              select(-female, -male) %>% 
+              rename(age_group_end = total) %>% 
+              mutate(threshold_total = age_group_end)) %>% 
+  bind_rows(thresholds_1y %>% 
               select(-total, -male) %>% 
-              rename(age = female) %>% 
-              mutate(threshold = age)) %>% 
-  arrange(location, time, threshold) %>% 
-  fill(threshold) %>% 
-  arrange(location, time, age) %>% 
-  mutate(CumPop = FunSpline(age, CumPop, age)) ->  female.pop.thresholds
+              rename(age_group_end = female) %>% 
+              mutate(threshold_female = age_group_end)) %>% 
+  bind_rows(thresholds_1y %>%  
+              select(-female, -total) %>% 
+              rename(age_group_end = male) %>% 
+              mutate(threshold_male = age_group_end)) %>% 
+  arrange(location, time, threshold_total) %>%  
+  fill(threshold_total)  %>% 
+  arrange(location, time, threshold_female) %>%  
+  fill(threshold_female) %>% 
+  arrange(location, time, threshold_male) %>%  
+  fill(threshold_male) %>% 
+  arrange(location, time, age_group_end) %>% 
+  mutate(cum_pop_total = FunSpline(age_group_end, cum_pop_total, age_group_end),
+         cum_pop_female = FunSpline(age_group_end, cum_pop_female, age_group_end),
+         cum_pop_male = FunSpline(age_group_end, cum_pop_male, age_group_end)) -> pop_thresholds
 
 ## 02.4. find proportion over  threslold age (and over 65) ====================
-total.pop.thresholds %>% 
-  mutate(over.65 = ifelse(age < 65, "under", "over"),
-         over.threshold = ifelse(age <= threshold, "under", "over")) %>% 
-  group_by(location, time, over.65) %>% 
-  mutate(Pop.65 = max(CumPop)) %>% 
-  group_by(location, time, over.threshold) %>% 
-  mutate(Pop.threshold = max(CumPop)) %>% 
+
+pop_thresholds %>% 
+  mutate(over_65 = ifelse(age_group_end <= 65 , "under", "over"),
+         over_threshold_total = ifelse(age_group_end <= threshold_total, "under", "over"),
+         over_threshold_female = ifelse(age_group_end <= threshold_female, "under", "over"),
+         over_threshold_male = ifelse(age_group_end <= threshold_male, "under", "over")) %>% 
+  group_by(location, time, over_65) %>% 
+  mutate(pop_65_total = max(cum_pop_total),
+         pop_65_female = max(cum_pop_female),
+         pop_65_male = max(cum_pop_male)) %>% 
+  group_by(location, time, over_threshold_total) %>% 
+  mutate(pop_threshold_total = max(cum_pop_total)) %>% 
+  group_by(location, time, over_threshold_female) %>% 
+  mutate(pop_threshold_female = max(cum_pop_female)) %>% 
+  group_by(location, time, over_threshold_male) %>% 
+  mutate(pop_threshold_male = max(cum_pop_male))  %>% 
   group_by(location, time) %>% 
-  summarise(under.t = first(Pop.threshold),
-            total = last(Pop.threshold),
-            under.65 = first(Pop.65)) %>% 
-  mutate(prop.over.65 = (total-under.65)/total,
-         prop.over.t = (total - under.t)/total,
-         group = "total") -> total.prop.over
-
-# for men only
-male.pop.thresholds %>% 
-  mutate(over.65 = ifelse(age < 65, "under", "over"),
-         over.threshold = ifelse(age <= threshold, "under", "over")) %>% 
-  group_by(location, time, over.65) %>% 
-  mutate(Pop.65 = max(CumPop)) %>% 
-  group_by(location, time, over.threshold) %>% 
-  mutate(Pop.threshold = max(CumPop)) %>% 
-  group_by(location, time) %>% 
-  summarise(under.t = first(Pop.threshold),
-            total = last(Pop.threshold),
-            under.65 = first(Pop.65)) %>% 
-  mutate(prop.over.65 = (total-under.65)/total,
-         prop.over.t = (total - under.t)/total, 
-         group = "male") -> male.prop.over
-
-# for women only
-female.pop.thresholds %>% 
-  mutate(over.65 = ifelse(age < 65, "under", "over"),
-         over.threshold = ifelse(age <= threshold, "under", "over")) %>% 
-  group_by(location, time, over.65) %>% 
-  mutate(Pop.65 = max(CumPop)) %>% 
-  group_by(location, time, over.threshold) %>% 
-  mutate(Pop.threshold = max(CumPop)) %>% 
-  group_by(location, time) %>% 
-  summarise(under.t = first(Pop.threshold),
-            total = last(Pop.threshold),
-            under.65 = first(Pop.65)) %>% 
-  mutate(prop.over.65 = (total-under.65)/total,
-         prop.over.t = (total - under.t)/total,
-         group = "female") -> female.prop.over
-
-## 02.5. merge all three tables back together==================================
-total.prop.over %>% 
-  bind_rows(male.prop.over) %>% 
-  bind_rows(female.prop.over) %>% 
-  select(-under.t, -total, -under.65) %>% 
-  arrange(location, time, group)  -> prop.over
-
-old.age.threshold.1y %>% 
-  gather("group", "threshold", 3:5) %>% 
-  arrange(location, time, group) -> thresholds
+  summarise(pop_under_65_total = first(pop_65_total),
+            pop_under_65_female = first(pop_65_female),
+            pop_under_65_male = first(pop_65_male),
+            pop_under_threshold_total = first(pop_threshold_total),
+            pop_under_threshold_female = first(pop_threshold_female),
+            pop_under_threshold_male = first(pop_threshold_male),
+            pop_all_total = last(pop_65_total),
+            pop_all_female = last(pop_65_female),
+            pop_all_male = last(pop_65_male)) %>% 
+  mutate(prop_over_65_total = 1-pop_under_65_total/pop_all_total,
+         prop_over_65_female = 1-pop_under_65_female/pop_all_female,
+         prop_over_65_male = 1-pop_under_65_male/pop_all_male,
+         prop_over_threshold_total = 1-pop_under_threshold_total/pop_all_total,
+         prop_over_threshold_female = 1-pop_under_threshold_female/pop_all_female,
+         prop_over_threshold_male = 1-pop_under_threshold_male/pop_all_male) %>% 
+  select(location, time, starts_with("prop")) -> prop_over 
 
 ## 03. save demo data extract for methods.Rmd  ================================
 
@@ -165,6 +129,6 @@ pop %>%
 saveRDS(demo.pop, here::here("data/03_processed/demo.pop.rds"))
 
 ## 04. save csv data for easy access ===========================================
-prospective_ages <- left_join(thresholds, prop.over) 
+prospective_ages <- left_join(thresholds_1y, prop_over) 
 write_csv(prospective_ages, "data/04_human-readable/2017_prospective-ages.csv")
 
