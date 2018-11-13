@@ -11,7 +11,7 @@ bibliography: "bib.bib"
 
 # Intro
 
-This document describes the methodology used to calculate the variables in the Prospective Age Dataset. It describes the original data used, and the calculations preformed for both variables. See also the codebook for a description of the dataset itself. This methods file, the codebook and the dataset are deposited on [figshare](https://figshare.com/articles/Prospective_Age_Dataset/6974414) and updated automatically. 
+This document describes the methodology used to calculate the variables in the Prospective Age Dataset. It describes the original data used, and the calculations preformed for both variables. See also the codebook for a description of the dataset itself. This methods file, the codebook and the dataset are deposited on [figshare in the Prospective_Age_Dataset](https://figshare.com/articles/Prospective_Age_Dataset/6974414) and updated automatically. 
 
 ***
 # Data 
@@ -49,7 +49,13 @@ Abridged life tables up to age 85 by sex and both sexes combined providing a set
 * **ax**: Average number of years lived (nax) between ages x and x+n by those dying in the interval
 
 ***
+# Definitions
 
+## Old-age thresholds
+
+## Proportion over old-age threshold
+
+***
 # Methodology
 
 See @Sanderson2008 for more info on prospective measures of ageing. 
@@ -67,8 +73,10 @@ demo.algeria <- filter(demo, MidPeriod == 1988)
 x <- demo.algeria$AgeGrpStart
 y <- demo.algeria$ex
 par(mar = c(3, 3, 2, 0)+0.1)
-plot(x, y, pch = 19, ylab = "ex", xlab = "x (age)",
+plot(x, y, pch = 19, ylab = "", xlab = "",
      main = "", axes = FALSE)
+mtext("x (age)", line = 2, side = 1)
+mtext("ex", line = 2, side = 2)
 axis(1)
 axis(2, las = 2)
 mtext("Algeria in 1988", line = 1)
@@ -129,8 +137,10 @@ thresholds.5y %>%
   mutate(old.age = FunSpline(MidPeriod, old.age, MidPeriod)) -> thresholds.1y
 par(mar = c(3, 3, 2, 0)+0.1)
 plot(thresholds.1y$MidPeriod, thresholds.1y$old.age, pch = 19, col = "red",
-     cex = 0.5, xlab = "Year", ylab = "Old-age threshold", 
+     cex = 0.5, xlab = "", ylab = "", 
      main = "", axes = FALSE)
+mtext("Year", line = 2, side = 1)
+mtext("Old-age threshold (RLE)", line = 2, side = 2)
 axis(1)
 axis(2, las = 2)
 mtext("Algeria", line = 1)
@@ -141,22 +151,22 @@ points(thresholds.5y$MidPeriod, thresholds.5y$old.age, pch = 19)
 
 Now technically, this chart in Figure 1 is a misleading because I am not actually using the spline $g(e_x)$. I am doing the inverse and getting the spline function for $g(x)$, so that I can then enter $e_x = 15$ and get out the value of $x$ i.e. the age. In doing this I am assuming that the function is monotonic--or rather that it is monotonic in the area that I'm interested in. Which is fine, because the only point at which it isn't monotonic is at the highest $e_x$ values (i.e. at birth). But the value $e_x=15$ occurs only once, so this is OK.
 
-So let's call the old-age threshold at time $y = i$, following @Sanderson2008, $RLE^{15}_{y=i}$, and in this case we only have it for five year time periods so $RLE^{15}_{y=i_5}$. RLE stands for remaining life expectancy.
+So let's follow @Sanderson2008 and call the old-age threshold at time $y = i$, the remaining life expectancy: $RLE^{15}_{y=i}$, and in this case we only have it for five year time periods so $RLE^{15}_{y=i_5}$. 
 
 
-Then, for a smoother graph, and because we will need them in the next step, we then use splines to interpolate to single years instead of the five year periods. Here we use MidPeriod variable as the correct for each old-age threshold. So the $RLE^{15}$ for 1950-1955 is actually the value in 1953, and the remaining years are then interpolated. Because of this I the first three and last two years might be treated with caution, since they are beyond the end points. The MidPeriod thresholds are therefore the input data for the interpolation of the individual year thresholds. 
+Then, because we will need them in the next step, we then use splines to interpolate the old-age thresholds to single years instead of the five year periods. Here we use the `MidPeriod` variable as the correct year for each old-age threshold calculated in the previous step. So the $RLE^{15}$ for 1950-1955 is actually the threshold in the year 1953, and the remaining years are interpolated now in this step. Because of this the first three and last two years might be treated with caution, since they are beyond the end points. The MidPeriod thresholds $RLE^{15}_{y=i_5}$ from the previous step are therefore the input data for the interpolation of the individual year thresholds. 
 
 So we have $RLE^{15}_{y=i_5}$ as a function of $y$ and interpolate using $g(RLE)$ to get individual years:
 
-$RLE^{15}_{y=i}$, where $i=1953, 1954... 2098$
+$RLE^{15}_{y=i}$, where $i=1950, 1954... 2100$
 
 See also Figure 2 where again black points represent known data and red the interpolated. 
 
-
+This two-step procedure was repeated also for men and women separately, which produces three of the variables in the final dataset called **female**, **male** and **total**.
 
 ## Calculating the proportion over old-age threshold
 
-So now we have the old-age threshold for every year. 
+So now we have the old-age threshold for every single year $y$ over the period. 
 
 $RLE^{15}_{y=i}$
 
@@ -166,7 +176,7 @@ $Pop_{y=i}^{x=k}$ where $k = 0,1,2...80+/100+$ and $y = 1950, 1951.. 2100$
 
 (Some countries have data capped at 80, others at 100, but in neither case are the thresholds anywhere near that end, so this is not relevant to our calculations).[^1]
 
-[^1]: The UN Standard Projections dataset is inconsistent here in that the variable **AgeGrp** has the value "80+" in the case of the first set of countries but simply "100" in the second instead of "100+". 
+[^1]: The UN Standard Projections dataset is inconsistent here in that the variable **AgeGrp** has the value "80+" in the case of the first set of countries but simply "100" in the second instead of "100+", but that is clearly what they mean. 
 
 So in order to get the proportion of the population over the old age-threshold, we now need to interpolate the population. E.g. there are 30,000 people aged 62 but not yet 63. How many people are aged 62.3? Again, this interpolation could be done linearly, but since we have information on the population at ages 61 and 63 etc, it makes sense to use that in the calculation and use splines again. 
 

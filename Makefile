@@ -16,6 +16,7 @@ DT04:= $(DATA)/04_human-readable
 RESULTS = $(DT04)/2017_prospective-ages.csv
 DEMOS = $(DT03)/demo.rds $(DT03)/demo.pop.rds
 INTERIM = $(DT02)/pop.rds $(DT02)/life_tables.rds
+META = $(DOCS)/methods.pdf $(DOCS)/codebook.pdf
 # COMMANDS ####################################################################
 # recipe to make .dot file  of this makefile
 define make2dot

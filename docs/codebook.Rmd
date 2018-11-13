@@ -5,24 +5,32 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 bibliography: "bib.bib"
 ---
+***
 
 ### Background
 
-This file describes the dataset `2017_prospective-ages.csv` which contains the calculated prospective old age thresholds for 241 countries and regions, 1950---2100, as well as the proportions of the population (male, female and total) over this threshold. 
 
-For background see @Sanderson2008. 
+This file describes the dataset `2017_prospective-ages.csv` which contains the calculated prospective old age thresholds for 241 countries and regions, 1950---2100, for men, women and both together, as well as the proportions of the population (male, female and total) over these thresholds. 
 
-The data was used in @mz2018, which is accessible [here](PH14.02.Factsheets/docs/presentations/PH14.02.Factsheet.pdf).
+*The dataset is deposited in the figshare data deposit [Propsective_Age_Dataset](https://figshare.com/articles/Prospective_Age_Dataset/6974414) which is the authoritative version.* A suggested citation is:
 
-The methods of analysis used to produce the data are available here. 
+* Založnik, M.. (2018). Prospective Age Dataset (Version 17). figshare. https://doi.org/10.6084/m9.figshare.6974414.v17
 
-The dataset is deposited on figshare [here](https://figshare.com/articles/Prospective_Age_Dataset/69744140.
+or better yet: click on the `Cite` button on the [figshare](https://figshare.com/articles/Prospective_Age_Dataset/6974414/17) page to format according to your prefered citation style. This will also automatically ensure you cite the correct version of the fileset. 
 
-The original data used in the calculations @un2017 
+The methods of analysis used to produce the data are available in the same deposit as the data (`methods.pdf`) - but for background see @Sanderson2008. 
+
+For an application of the data see the factsheet on Middle East and North African countries @mz2018, which is accessible [here](PH14.02.Factsheets/docs/presentations/PH14.02.Factsheet.pdf) and will be published in the Population Horizons journal shortly.
+
+This figshare deposit is uploaded directly from the following GitHub repository: [ProspectiveAgeData](https://github.com/majazaloznik/ProspectiveAgeData). Comments and issues should be raised there. 
+
+The original data used in the calculations are @un2017:
 
 * UN World Population Prospects [Standard Projections]; accessed `r format(file.info(here::here("data/01_raw/WPP2017_PBSAS.csv"))$ctime,format='%d.%m.%Y')`
 
 * UN Life Tables---Mortality Indicators;  accessed `r format(file.info(here::here("data/01_raw/WPP2017_PBSAS.csv"))$ctime,format='%d.%m.%Y')`
+
+
 
 ***
 ## Description of the dataset
@@ -41,25 +49,21 @@ Each row is a location-time-group combination e.g.: *Algeria-1956-female*. There
 * range: 1950---2100
 * Source:  @un2017 
 
-3. **group**---population to which the data refers to [string]
-* either male, female or tota
-* Source:  @un2017 
-
-4. **threshold**---old age threshold $RLE^15$ [numeric]. 
-* Data for men and women (but not total) randomly cross-checked with  @scherbov2018aging.
+3. **female**, **male** and **total**---this are the old-age thresholds for each of the population groups ($RLE^{15}$) [numeric]
+* Data for men and women (but not total) randomly cross-checked with  @scherbov2018aging and are all correct.
 * Source: own calculation using splines from abridged life-tables.
 
-5. **prop.over.65**---proportion of the population aged 65 or over.
-* Data randomly cross-checked with [World Bank Data](https://data.worldbank.org/indicator/SP.POP.65UP.TO.ZS)[^1]
+5. **prop.over.65_female**, **_male** and **_total****---proportion of the population aged 65 or over for each of the three population groups. 
+* Data  cross-checked with [World Bank Data](https://data.worldbank.org/indicator/SP.POP.65UP.TO.ZS) and all are correct.
 * Source: own calculation using WPP standard projections. 
 
-6. **prop.over.t**---proportion of population older than old-age threshold [**threshold** above].
-* For three countries was possible to visually cross-check with @scherbov2018aging, in all cases theirs are slightly higher.[^2]
-* Source: own calculation using splines from abridged life-tables and WPP standard projections. 
+6. **prop.over.threshold_female**, **_male** and **_total**---proportion of population older than old-age threshold [**threshold** above] for each of the three population groups.
+* The proportions of males and females are calculated as those older than the old-age threhsold for males and females respectively, not the total old-age threshold. 
+* For three countries was possible to visually cross-check the total with @scherbov2018aging, in all are correct.[^1]
+* Source: own calculation using splines from abridged life-tables and WPP standard projections. See the methods.pdf file in this fileset for more details on the calculation. 
 
 
-[^1]: The huge majority of the checks were correct to 7 significant digits. There were a few discrepancies however, to the tune of 0.1-0.5 percentage point (e.g Malawi females). These are ascribed to WB perhaps using an earlier version of the data. Given the preponderance of the evidence the calculations performed here are correct, however the results are only as reliable as the original data. 
-[^2]: The  @scherbov2018aging datasheet is the only validation source known to me. They only calculate the proportions over the threshold age for Korea, Italy and the US and these values are plotted, not reported numerically. Despite this it seems by visual inspection that their values for the proportions are slightly higher than mine (perhaps .5 %). Not sure as to the cause, could again have to do with original data. e.g. I used the `.csv` life table files where the life expectancy is to 2 decimal points precision, while there also exist on the WPP site Excel files with one more digit precision that does not seem to be correctly rounded in the .csv file. Similar things may be happening in the population files, which could lead to errors. Since the @scherbov2018aging public methodology, I cannot repoduce their numbers. Given that we match on the thresholds and I match with the World Bank on the proportions over 65, I feel quite confident that my proportions over the threshold are correct as well. [Have another look at the LEQ issue maybe?]
+[^1]: The  @scherbov2018aging datasheet is the only validation source known to me. They only calculate the proportions over the threshold age for Korea, Italy and the US and these values are plotted, not reported numerically. Despite this it seems by visual inspection that their values for the proportions exactly the same as mine checking for the years 1983, 2015 and 2050 which are the easiest to read from the charts. 
 
 
  ***

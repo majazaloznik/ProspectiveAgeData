@@ -1,3 +1,8 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 
 # Monday 13.8.2018
 
@@ -152,3 +157,29 @@ In trying to sort it out, I figured out sth else: My proportion over the thresho
 
 4. Excellent, this works! Back to the factsheet now. 
 
+# Tuesday 28.8.2018
+
+OK, so the splines are now fixed and presumably correct. I need to double check the numbers where i can and update the codebook and the methodology paper. 
+
+1. Comparing my results with the [Wittgenstein  centre Data Explorer](http://www.oeaw.ac.at/fileadmin/subsites/Institute/VID/dataexplorer/index.html) is not a good idea, since that seems to be based on the 2014. 
+
+2.  Compare with world bank data directly. All correct, see `04_double-check.R` for code. 
+
+3. Clean up codebook to account for all the checks and how correct everything is. 
+
+4. methods charts are missing axis labels
+
+5. Looks like i overwrote a new version of the data transform when i got back from France.. Because the data is wide. So used dropbox to get the old version back, hopefully it's correct! Hmm, when did i go wide? The codebook was wide first and then rewritten to long. All the factsheet stuff is clearly written for wide. So I could just fix the codebook back.
+
+
+# Monday 12.11.2018
+
+Started preparing the prospective ageing talk and noticed the figsgare most recent version - 19 - doesn't have the data, just the manual and codebook!? what gives!
+
+2. OK, so my code is not safe, not sure how i lost the file, but the update looks up the filenumbers of the newest version, and so with one missing, that meant it wouldn't pick it up next time either. .
+
+3. Doesn't look like i worte up anything about the figshare uploading code or anything, what a shame!!!
+
+# Tuesday 13.11.2018
+
+Hmm, so there is some sort of issue back from "when i got back from france". like the data is now 100 times bigger than before, that's probably why it won't go up. So something went wrong in the transform file. 

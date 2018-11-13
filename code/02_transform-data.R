@@ -45,7 +45,7 @@ old.age.threshold.5y %>%
   mutate(female= FunSpline(MidPeriod, female, MidPeriod),
          male = FunSpline(MidPeriod, male, MidPeriod),
          total = FunSpline(MidPeriod, total, MidPeriod)) %>% 
-  rename(time = MidPeriod) ->   thresholds_1y
+  rename(time = MidPeriod) ->   old.age.threshold.1y
 
 rm(interpolating.years, old.age.threshold.5y)
 
@@ -59,15 +59,15 @@ pop %>%
          cum_pop_female = cumsum(female),
          cum_pop_male = cumsum(male))  %>% 
   select(-total, -male, -female) %>% 
-  bind_rows(thresholds_1y %>%  
+  bind_rows(old.age.threshold.1y %>%  
               select(-female, -male) %>% 
               rename(age_group_end = total) %>% 
               mutate(threshold_total = age_group_end)) %>% 
-  bind_rows(thresholds_1y %>% 
+  bind_rows(old.age.threshold.1y %>% 
               select(-total, -male) %>% 
               rename(age_group_end = female) %>% 
               mutate(threshold_female = age_group_end)) %>% 
-  bind_rows(thresholds_1y %>%  
+  bind_rows(old.age.threshold.1y %>%  
               select(-female, -total) %>% 
               rename(age_group_end = male) %>% 
               mutate(threshold_male = age_group_end)) %>% 
@@ -129,6 +129,8 @@ pop %>%
 saveRDS(demo.pop, here::here("data/03_processed/demo.pop.rds"))
 
 ## 04. save csv data for easy access ===========================================
-prospective_ages <- left_join(thresholds_1y, prop_over) 
+pop_thresholds %>%  summarise_at(vars(starts_with("threshold_")), first) -> pop_thresholds 
+prospective_ages <- left_join(pop_thresholds, prop_over) 
 write_csv(prospective_ages, "data/04_human-readable/2017_prospective-ages.csv")
+
 
