@@ -62,7 +62,7 @@ See @Sanderson2008 for more info on prospective measures of ageing.
 
 ## Calculating the old-age thresholds
 
-The *old-age threshold*, is the age at which the remaining life expectancy is 15 years. Calculating it was based on the abridged life tables which has life expectancy ($e_x$) values for five year age groups. I used splines to interpolate the age $x$ where $e_x$ equals 15. 
+The *old-age threshold*, is the age at which the remaining life expectancy is 15 years. Calculating it was based on the abridged life tables which has (period) life expectancy ($e_x$) values for five year age groups. I used splines to interpolate the age $x$ where $e_x$ equals 15. 
 
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Interpolation of old-age threhsold ($RLE^15$): x where ex is 15.", fig.width = 6, fig.asp = .5}
@@ -158,11 +158,11 @@ Then, because we will need them in the next step, we then use splines to interpo
 
 So we have $RLE^{15}_{y=i_5}$ as a function of $y$ and interpolate using $g(RLE)$ to get individual years:
 
-$RLE^{15}_{y=i}$, where $i=1950, 1954... 2100$
+$RLE^{15}_{y=i}$, where $i=1950, 1951..., 2099, 2100$
 
 See also Figure 2 where again black points represent known data and red the interpolated. 
 
-This two-step procedure was repeated also for men and women separately, which produces three of the variables in the final dataset called **female**, **male** and **total**.
+This two-step procedure was repeated also for men and women separately, which produces three of the variables in the final dataset called **threshold_female**, **threshold_male** and **threshold_total**.
 
 ## Calculating the proportion over old-age threshold
 
@@ -178,9 +178,9 @@ $Pop_{y=i}^{x=k}$ where $k = 0,1,2...80+/100+$ and $y = 1950, 1951.. 2100$
 
 [^1]: The UN Standard Projections dataset is inconsistent here in that the variable **AgeGrp** has the value "80+" in the case of the first set of countries but simply "100" in the second instead of "100+", but that is clearly what they mean. 
 
-So in order to get the proportion of the population over the old age-threshold, we now need to interpolate the population. E.g. there are 30,000 people aged 62 but not yet 63. How many people are aged 62.3? Again, this interpolation could be done linearly, but since we have information on the population at ages 61 and 63 etc, it makes sense to use that in the calculation and use splines again. 
+So in order to get the proportion of the population over the old age-threshold, we now need to interpolate the population. E.g. there are 30,000 people aged 62 but not yet 63. How many people are aged 62.3? Again, this interpolation could be done linearly, but since we have information on the population at ages 61 and 63 etc, it makes sense to use that in the calculation and use splines again (i.e. I am on a roll).  
 
-But of course (it turns out after a lot of odd results) I need to interpolate between the cumulative populations! So here is how this works via Figure 3. Here we start at the old-age threshold reading it off the x-axis--it's 62.89 for Algeria in 1988, and interpolate the cumulative population that is under that age from the y-axis. This cumulative population $Pop_{y=i}^{x<RLE^{15}_{y=i}}$ is then divided by the total population in year $y=i$ to get the proportion *under* the old-age threshold, which is subtracted from one to get the proportion *over* the threshold:
+But of course (it turns out after a lot of odd results) I need to interpolate between the cumulative populations! So here is how this works via Figure 3. Here we start at the old-age threshold, reading it off the x-axis (it's 62.89 for Algeria in 1988) and interpolate the cumulative population that is under that age from the y-axis. This cumulative population $Pop_{y=i}^{x<RLE^{15}_{y=i}}$ is then divided by the total population in year $y=i$ to get the proportion *under* the old-age threshold, which is subtracted from one to get the proportion *over* the threshold:
 
 $Prop > RLE^{15} = 1 - Prop < RLE^{15} = 1 - \frac{Pop_{y=i}^{x<RLE^{15}_{y=i}}}{\sum_{x = 1}^{x = 80+/100+}{Pop^{x}_{y=i}}}$
 
@@ -215,6 +215,11 @@ arrows(62,  func(func2(15)), 61,func(func2(15)), col = "red", lwd = 2,
 
 ```
  
+# ToDo
 
+
+Next thing missing is the dependency ratio or  the *Prospective old-age dependency ratio* which it seems was first formally proposed in @Sanderson2005. 
+
+I guess I could also do the prospective median age, but I find that one a bit unintuitive, and on top of it it requires a standard reference life table be chosen, perhaps the one from 2000 for that country, or a single country/year table for all the countries to make them directly comparable. I am actually not clear on what they did in the 
 
 # References
